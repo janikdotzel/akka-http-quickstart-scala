@@ -72,8 +72,3 @@ object Main {
   }
 }
 
-/* Test with the following commands
- Create User: `curl -X POST -H "Content-Type: application/json" -d '{"id":"1", "name":"John Doe", "age":30}' http://localhost:8080/user`
- Get User: `curl http://localhost:8080/user/1`
-*/
-
