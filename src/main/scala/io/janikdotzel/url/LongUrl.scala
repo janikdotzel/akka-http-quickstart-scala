@@ -1,14 +1,13 @@
-package io.janikdotzel.serialization
+package io.janikdotzel.url
 
 import akka.actor.ActorSystem
-import akka.actor.typed.scaladsl.Behaviors
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives.{path, _}
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config._
 
-import scala.concurrent.{Await, ExecutionContextExecutor}
 import scala.concurrent.duration.DurationInt
+import scala.concurrent.{Await, ExecutionContextExecutor}
 
 object LongUrl extends App {
 
@@ -16,19 +15,14 @@ object LongUrl extends App {
   val ThreeThousandChars = "X" * 3000
   val TenThousandChars = "X" * 10000
 
-//  val system = ActorSystem(Behaviors.empty, "system")
-//  implicit val executionContext = system.executionContext
-
-  implicit val system: ActorSystem = ActorSystem("system", ConfigFactory.load())
+  implicit val system: ActorSystem = ActorSystem("system", getConfig())
   implicit val executionContext: ExecutionContextExecutor = system.dispatcher
 
-//  println(system.settings.config.getString(""))
-
-  Http().newServerAt("localhost", 8080).bind(route)
+  Http().newServerAt("localhost", 8080).bind(routes())
   println("Server now online at http://localhost:8080/")
 
 
-  def route() =
+  def routes() =
     concat(
       path("") {
         get {
@@ -63,6 +57,19 @@ object LongUrl extends App {
     val req10 = Http().singleRequest(HttpRequest(uri = "http://localhost:8080/" + TenThousandChars))
 
     Await.result(req1, 3.seconds) + "\n\n" + Await.result(req3, 3.seconds) + "\n\n" + Await.result(req10, 3.seconds)
+  }
+
+  private def getConfig(): Config = {
+
+    // Load the application configuration (application.conf)
+    val applicationConfig = ConfigFactory.load("application")
+
+    // Get the library configuration
+    val libraryConfig = LibraryConfig.fileBasedConfig
+
+    // Merge the configurations, with library config having higher priority
+    val finalConfig = libraryConfig.withFallback(applicationConfig)
+    finalConfig
   }
 }
 
